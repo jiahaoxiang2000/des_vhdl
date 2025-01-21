@@ -49,6 +49,115 @@ package des_pkg is
         28, 29, 30, 31, 32, 1
     );
 
+    -- PC1 Table type and constant
+    type pc1_table_type is array (0 to 55) of integer range 1 to 64;
+    constant PC1_TABLE : pc1_table_type := (
+        57, 49, 41, 33, 25, 17, 9, 1,
+        58, 50, 42, 34, 26, 18, 10, 2,
+        59, 51, 43, 35, 27, 19, 11, 3,
+        60, 52, 44, 36, 63, 55, 47, 39,
+        31, 23, 15, 7, 62, 54, 46, 38,
+        30, 22, 14, 6, 61, 53, 45, 37,
+        29, 21, 13, 5, 28, 20, 12, 4
+    );
+
+    -- PC2 Table type and constant
+    type pc2_table_type is array (0 to 47) of integer range 1 to 56;
+    constant PC2_TABLE : pc2_table_type := (
+        14, 17, 11, 24, 1, 5, 3, 28,
+        15, 6, 21, 10, 23, 19, 12, 4,
+        26, 8, 16, 7, 27, 20, 13, 2,
+        41, 52, 31, 37, 47, 55, 30, 40,
+        51, 45, 33, 48, 44, 49, 39, 56,
+        34, 53, 46, 42, 50, 36, 29, 32
+    );
+
+    -- Key rotation schedule
+    type rotation_table_type is array (0 to 15) of integer range 1 to 2;
+    constant KEY_ROTATIONS : rotation_table_type := (
+        1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1
+    );
+
+    -- S-box type definitions
+    type sbox_array is array (0 to 63) of std_logic_vector(3 downto 0);
+    type sbox_list is array (0 to 7) of sbox_array;
+    
+    -- S-box constants
+    constant S_BOXES : sbox_list := (
+        -- S1
+        (X"E", X"4", X"D", X"1", X"2", X"F", X"B", X"8", 
+         X"3", X"A", X"6", X"C", X"5", X"9", X"0", X"7",
+         X"0", X"F", X"7", X"4", X"E", X"2", X"D", X"1",
+         X"A", X"6", X"C", X"B", X"9", X"5", X"3", X"8",
+         X"4", X"1", X"E", X"8", X"D", X"6", X"2", X"B",
+         X"F", X"C", X"9", X"7", X"3", X"A", X"5", X"0",
+         X"F", X"C", X"8", X"2", X"4", X"9", X"1", X"7",
+         X"5", X"B", X"3", X"E", X"A", X"0", X"6", X"D"),
+        -- S2
+        (X"F", X"1", X"8", X"E", X"6", X"B", X"3", X"4",
+         X"9", X"7", X"2", X"D", X"C", X"0", X"5", X"A",
+         X"3", X"D", X"4", X"7", X"F", X"2", X"8", X"E",
+         X"C", X"0", X"1", X"A", X"6", X"9", X"B", X"5",
+         X"0", X"E", X"7", X"B", X"A", X"4", X"D", X"1",
+         X"5", X"8", X"C", X"6", X"9", X"3", X"2", X"F",
+         X"D", X"8", X"A", X"1", X"3", X"F", X"4", X"2",
+         X"B", X"6", X"7", X"C", X"0", X"5", X"E", X"9"),
+        -- S3
+        (X"A", X"0", X"9", X"E", X"6", X"3", X"F", X"5",
+         X"1", X"D", X"C", X"7", X"B", X"4", X"2", X"8",
+         X"D", X"7", X"0", X"9", X"3", X"4", X"6", X"A",
+         X"2", X"8", X"5", X"E", X"C", X"B", X"F", X"1",
+         X"D", X"6", X"4", X"9", X"8", X"F", X"3", X"0",
+         X"B", X"1", X"2", X"C", X"5", X"A", X"E", X"7",
+         X"1", X"A", X"D", X"0", X"6", X"9", X"8", X"7",
+         X"4", X"F", X"E", X"3", X"B", X"5", X"2", X"C"),
+        -- S4
+        (X"7", X"D", X"E", X"3", X"0", X"6", X"9", X"A",
+         X"1", X"2", X"8", X"5", X"B", X"C", X"4", X"F",
+         X"D", X"8", X"B", X"5", X"6", X"F", X"0", X"3",
+         X"4", X"7", X"2", X"C", X"1", X"A", X"E", X"9",
+         X"A", X"6", X"9", X"0", X"C", X"B", X"7", X"D",
+         X"F", X"1", X"3", X"E", X"5", X"2", X"8", X"4",
+         X"3", X"F", X"0", X"6", X"A", X"1", X"D", X"8",
+         X"9", X"4", X"5", X"B", X"C", X"7", X"2", X"E"),
+        -- S5
+        (X"2", X"C", X"4", X"1", X"7", X"A", X"B", X"6",
+         X"8", X"5", X"3", X"F", X"D", X"0", X"E", X"9",
+         X"E", X"B", X"2", X"C", X"4", X"7", X"D", X"1",
+         X"5", X"0", X"F", X"A", X"3", X"9", X"8", X"6",
+         X"4", X"2", X"1", X"B", X"A", X"D", X"7", X"8",
+         X"F", X"9", X"C", X"5", X"6", X"3", X"0", X"E",
+         X"B", X"8", X"C", X"7", X"1", X"E", X"2", X"D",
+         X"6", X"F", X"0", X"9", X"A", X"4", X"5", X"3"),
+        -- S6
+        (X"C", X"1", X"A", X"F", X"9", X"2", X"6", X"8",
+         X"0", X"D", X"3", X"4", X"E", X"7", X"5", X"B",
+         X"A", X"F", X"4", X"2", X"7", X"C", X"9", X"5",
+         X"6", X"1", X"D", X"E", X"0", X"B", X"3", X"8",
+         X"9", X"E", X"F", X"5", X"2", X"8", X"C", X"3",
+         X"7", X"0", X"4", X"A", X"1", X"D", X"B", X"6",
+         X"4", X"3", X"2", X"C", X"9", X"5", X"F", X"A",
+         X"B", X"E", X"1", X"7", X"6", X"0", X"8", X"D"),
+        -- S7
+        (X"4", X"B", X"2", X"E", X"F", X"0", X"8", X"D",
+         X"3", X"C", X"9", X"7", X"5", X"A", X"6", X"1",
+         X"D", X"0", X"B", X"7", X"4", X"9", X"1", X"A",
+         X"E", X"3", X"5", X"C", X"2", X"F", X"8", X"6",
+         X"1", X"4", X"B", X"D", X"C", X"3", X"7", X"E",
+         X"A", X"F", X"6", X"8", X"0", X"5", X"9", X"2",
+         X"6", X"B", X"D", X"8", X"1", X"4", X"A", X"7",
+         X"9", X"5", X"0", X"F", X"E", X"2", X"3", X"C"),
+        -- S8
+        (X"D", X"2", X"8", X"4", X"6", X"F", X"B", X"1",
+         X"A", X"9", X"3", X"E", X"5", X"0", X"C", X"7",
+         X"1", X"F", X"D", X"8", X"A", X"3", X"7", X"4",
+         X"C", X"5", X"6", X"B", X"0", X"E", X"9", X"2",
+         X"7", X"B", X"4", X"1", X"9", X"C", X"E", X"2",
+         X"0", X"6", X"A", X"D", X"F", X"3", X"5", X"8",
+         X"2", X"1", X"E", X"7", X"4", X"A", X"8", X"D",
+         X"F", X"C", X"9", X"0", X"3", X"5", X"6", X"B")
+    );
+
     -- Component declarations
     component initial_permutation is
         port (

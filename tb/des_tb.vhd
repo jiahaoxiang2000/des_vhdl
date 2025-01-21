@@ -11,9 +11,9 @@ architecture testbench of des_tb is
     -- Component signals
     signal clk        : std_logic := '0';
     signal rst        : std_logic := '1';
-    signal data_in    : std_logic_vector(BLOCK_SIZE-1 downto 0);
-    signal key        : std_logic_vector(BLOCK_SIZE-1 downto 0);
-    signal encrypt    : std_logic;
+    signal data_in    : std_logic_vector(BLOCK_SIZE-1 downto 0) := (others => '0');
+    signal key        : std_logic_vector(BLOCK_SIZE-1 downto 0) := (others => '0');
+    signal encrypt    : std_logic := '1';
     signal data_out   : std_logic_vector(BLOCK_SIZE-1 downto 0);
     signal valid_out  : std_logic;
     
@@ -100,36 +100,45 @@ begin
         -- Initial reset
         rst <= '1';
         encrypt <= '1';
-        wait_cycles(2);
+        data_in <= (others => '0');
+        key <= (others => '0');
+        wait for CLK_PERIOD * 2;
+        
         rst <= '0';
-        wait_cycles(1);
+        wait for CLK_PERIOD;
 
         -- Run encryption tests
         for i in test_vectors'range loop
-            -- Set inputs
+            -- Set inputs and wait for setup time
+            wait until falling_edge(clk);
             data_in <= test_vectors(i).plaintext;
             key <= test_vectors(i).key;
             encrypt <= '1';
             
-            -- Wait for result
-            wait_cycles(20);
+            -- Wait for processing
+            wait for CLK_PERIOD * 20;
             
-            -- Check result
+            -- Check result after settling time
+            wait until rising_edge(clk);
+            wait for 1 ns; -- Allow for output settling
             print_result(i, test_vectors(i).ciphertext, data_out);
             
-            wait_cycles(2);
+            wait for CLK_PERIOD * 2;
 
             -- Test decryption
+            wait until falling_edge(clk);
             data_in <= data_out;
             encrypt <= '0';
             
-            -- Wait for result
-            wait_cycles(20);
+            -- Wait for processing
+            wait for CLK_PERIOD * 20;
             
             -- Check decryption result
+            wait until rising_edge(clk);
+            wait for 1 ns; -- Allow for output settling
             print_result(i+100, test_vectors(i).plaintext, data_out);
             
-            wait_cycles(2);
+            wait for CLK_PERIOD * 2;
         end loop;
 
         -- End simulation

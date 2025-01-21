@@ -158,6 +158,15 @@ package des_pkg is
          X"F", X"C", X"9", X"0", X"3", X"5", X"6", X"B")
     );
 
+    -- P-box permutation table
+    type p_table_type is array (0 to 31) of integer range 1 to 32;
+    constant P_TABLE : p_table_type := (
+        16, 7, 20, 21, 29, 12, 28, 17,
+        1, 15, 23, 26, 5, 18, 31, 10,
+        2, 8, 24, 14, 32, 27, 3, 9,
+        19, 13, 30, 6, 22, 11, 4, 25
+    );
+
     -- Component declarations
     component initial_permutation is
         port (

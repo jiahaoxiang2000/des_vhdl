@@ -116,7 +116,7 @@ begin
             encrypt <= '1';
             
             -- Wait for processing
-            wait for CLK_PERIOD * 20;
+            wait for CLK_PERIOD * 2;
             
             -- Check result after settling time
             wait until rising_edge(clk);
@@ -131,7 +131,7 @@ begin
             encrypt <= '0';
             
             -- Wait for processing
-            wait for CLK_PERIOD * 20;
+            wait for CLK_PERIOD * 2;
             
             -- Check decryption result
             wait until rising_edge(clk);

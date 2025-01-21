@@ -1,5 +1,5 @@
 # GHDL commands
-GHDL=ghdl
+GHDL=/Users/xiangjiahao/tools/ghdl/bin/ghdl
 GHDLFLAGS=--ieee=synopsys
 
 # Project files

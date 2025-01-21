@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use work.des_pkg.all;
+use ieee.numeric_std.all;
 
 entity key_schedule is
     port (
@@ -36,8 +37,8 @@ begin
         
         for i in 0 to 15 loop
             -- Rotate according to schedule
-            c_temp := c_temp rol KEY_ROTATIONS(i);
-            d_temp := d_temp rol KEY_ROTATIONS(i);
+            c_temp := std_logic_vector(rotate_left(unsigned(c_temp), KEY_ROTATIONS(i)));
+            d_temp := std_logic_vector(rotate_left(unsigned(d_temp), KEY_ROTATIONS(i)));
             combined := c_temp & d_temp;
             
             -- PC2 permutation

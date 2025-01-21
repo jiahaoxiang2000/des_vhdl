@@ -30,9 +30,18 @@ begin
     -- XOR with round key
     xored <= expanded_r xor key;
 
-    -- S-box substitution would go here
-    -- For now, just pass through
-    data_out(63 downto 32) <= right_half;
-    data_out(31 downto 0) <= left_half xor xored(31 downto 0);
+    -- S-box substitution
+    sbox: process(xored)
+        variable sbox_in : std_logic_vector(5 downto 0);
+        variable sbox_out : std_logic_vector(31 downto 0);
+    begin
+        for i in 0 to 7 loop
+            sbox_in := xored(i*6+5 downto i*6);
+            sbox_out((7-i)*4+3 downto (7-i)*4) := 
+                S_BOXES(i)(to_integer(unsigned(sbox_in)));
+        end loop;
+        data_out(63 downto 32) <= right_half;
+        data_out(31 downto 0) <= left_half xor sbox_out;
+    end process;
 
 end architecture;

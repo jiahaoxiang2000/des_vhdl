@@ -12,23 +12,42 @@ end entity;
 
 architecture rtl of key_schedule is
     signal pc1_key : std_logic_vector(55 downto 0);
+    signal c, d : std_logic_vector(27 downto 0);
 begin
     -- PC1 permutation
-    process(key)
+    pc1: process(key)
     begin
-        -- Simplified key schedule - just take 56 bits
-        pc1_key <= key(55 downto 0);
+        for i in 0 to 55 loop
+            pc1_key(i) <= key(PC1_TABLE(i) - 1);
+        end loop;
     end process;
 
+    -- Split into C and D blocks
+    c <= pc1_key(55 downto 28);
+    d <= pc1_key(27 downto 0);
+
     -- Generate round keys
-    process(pc1_key, encrypt)
+    round_key_gen: process(c, d, encrypt)
+        variable c_temp, d_temp : std_logic_vector(27 downto 0);
+        variable combined : std_logic_vector(55 downto 0);
     begin
+        c_temp := c;
+        d_temp := d;
+        
         for i in 0 to 15 loop
-            if encrypt = '1' then
-                round_keys(i) <= pc1_key(47 downto 0);
-            else
-                round_keys(15-i) <= pc1_key(47 downto 0);
-            end if;
+            -- Rotate according to schedule
+            c_temp := c_temp rol KEY_ROTATIONS(i);
+            d_temp := d_temp rol KEY_ROTATIONS(i);
+            combined := c_temp & d_temp;
+            
+            -- PC2 permutation
+            for j in 0 to 47 loop
+                if encrypt = '1' then
+                    round_keys(i)(j) <= combined(PC2_TABLE(j) - 1);
+                else
+                    round_keys(15-i)(j) <= combined(PC2_TABLE(j) - 1);
+                end if;
+            end loop;
         end loop;
     end process;
 end architecture;

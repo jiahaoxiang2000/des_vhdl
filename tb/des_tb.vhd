@@ -32,9 +32,9 @@ architecture testbench of des_tb is
     constant test_vectors : test_vector_array := (
         -- Test vector 1 (Standard DES test vector)
         0 => (
-            plaintext  => x"0000000000000000",
-            key       => x"0000000000000000",
-            ciphertext => x"8CA64DE9C1B123A7"
+            plaintext  => x"4E6F772069732074",
+            key       => x"0123456789ABCDEF",
+            ciphertext => x"3FA40E8A984D4815"
         ),
         -- Test vector 2
         1 => (

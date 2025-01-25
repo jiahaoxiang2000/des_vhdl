@@ -1,66 +1,194 @@
 library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use work.des_pkg.all;
-use ieee.numeric_std.all;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity key_schedule is
-    port (
-        key     : in  std_logic_vector(63 downto 0);
-        encrypt : in  std_logic;
-        round_keys : out key_array
-    );
-end entity;
+port (
 
-architecture rtl of key_schedule is
-    signal pc1_key : std_logic_vector(55 downto 0);
-    signal c, d : std_logic_vector(27 downto 0);
+		key_in:			in std_logic_vector(0 to 63);		-- key to be expanded
+		
+		-- interface signals for communication with DES 
+		KeySelect: 		in std_logic_vector(3 downto 0);	-- selector for key
+    	key_out: 		out std_logic_vector(0 to 47);	-- expaned key output
+		key_ready: 		out std_logic;							-- signal for DES that key has been expanded
+	
+		reset: 			in std_logic; 							-- reset
+		clock: 			in std_logic  							-- master clock
+		);
+end key_schedule;
+
+architecture Behavioral of key_schedule is
+
+--
+-- Storage for expanded key 
+--
+signal K16, K1:  std_logic_vector(0 to 47);
+signal K2,  K3:  std_logic_vector(0 to 47);
+signal K4,  K5:  std_logic_vector(0 to 47);
+signal K6,  K7:  std_logic_vector(0 to 47);
+signal K8,  K9:  std_logic_vector(0 to 47);
+signal K10, K11: std_logic_vector(0 to 47);
+signal K12, K13: std_logic_vector(0 to 47);
+signal K14, K15: std_logic_vector(0 to 47);
+
 begin
-    -- PC1 permutation
-    pc1: process(key)
-    begin
-        for i in 0 to 55 loop
-            pc1_key(i) <= key(PC1_TABLE(i) - 1);
-        end loop;
-    end process;
 
-    -- Split into C and D blocks
-    c <= pc1_key(55 downto 28);
-    d <= pc1_key(27 downto 0);
 
-    -- Generate round keys
-    round_key_gen: process(c, d, encrypt)
-        variable c_temp, d_temp : std_logic_vector(27 downto 0);
-        variable c_next, d_next : std_logic_vector(27 downto 0);
-        variable combined : std_logic_vector(55 downto 0);
-    begin
-        c_temp := c;
-        d_temp := d;
-        
-        for i in 0 to 15 loop
-            -- Calculate next C and D blocks with rotation
-            if KEY_ROTATIONS(i) = 1 then
-                c_next := c_temp(26 downto 0) & c_temp(27);
-                d_next := d_temp(26 downto 0) & d_temp(27);
-            else -- rotation by 2
-                c_next := c_temp(25 downto 0) & c_temp(27 downto 26);
-                d_next := d_temp(25 downto 0) & d_temp(27 downto 26);
-            end if;
-            
-            -- Combine C and D blocks
-            combined := c_next & d_next;
-            
-            -- PC2 permutation with encrypt/decrypt handling
-            for j in 0 to 47 loop
-                if encrypt = '1' then
-                    round_keys(i)(j) <= combined(PC2_TABLE(j) - 1);
-                else
-                    round_keys(15-i)(j) <= combined(PC2_TABLE(j) - 1);
-                end if;
-            end loop;
+--
+-- Selector for expaned key
+--
+key_out <= 	K1 	when 	KeySelect = x"0" else
+				K2 	when 	KeySelect = x"1" else
+				K3 	when 	KeySelect = x"2" else
+				K4 	when 	KeySelect = x"3" else
+				K5 	when 	KeySelect = x"4" else
+				K6 	when 	KeySelect = x"5" else
+				K7 	when 	KeySelect = x"6" else
+				K8 	when 	KeySelect = x"7" else
+				K9 	when 	KeySelect = x"8" else
+				K10 	when 	KeySelect = x"9" else
+				K11 	when 	KeySelect = x"A" else
+				K12 	when 	KeySelect = x"B" else
+				K13 	when 	KeySelect = x"C" else
+				K14 	when 	KeySelect = x"D" else
+				K15 	when 	KeySelect = x"E" else
+				K16;
 
-            -- Update for next round
-            c_temp := c_next;
-            d_temp := d_next;
-        end loop;
-    end process;
-end architecture;
+process (clock)
+begin
+	
+--
+-- input key will expaned and stored after rising edge of the first clock after mater reset.  
+-- the keys are captured at a triple-des level
+--
+if rising_edge(clock) then
+
+	if reset = '1' then 
+		key_ready <= '0';
+	else
+		
+		--
+		-- key expansion from the input key
+		--
+		K1 <= key_in(9) & key_in(50) & key_in(33) & key_in(59) & key_in(48) & key_in(16) & key_in(32) & key_in(56) & 
+				key_in(1) & key_in(8) & key_in(18) & key_in(41) & key_in(2) & key_in(34) & key_in(25) & key_in(24) & 
+				key_in(43) & key_in(57) & key_in(58) & key_in(0) & key_in(35) & key_in(26) & key_in(17) & key_in(40) & 
+				key_in(21) & key_in(27) & key_in(38) & key_in(53) & key_in(36) & key_in(3) & key_in(46) & key_in(29) & 
+				key_in(4) & key_in(52) & key_in(22) & key_in(28) & key_in(60) & key_in(20) & key_in(37) & key_in(62) & 
+				key_in(14) & key_in(19) & key_in(44) & key_in(13) & key_in(12) & key_in(61) & key_in(54) & key_in(30);			
+
+		K2 <= key_in(1) & key_in(42) & key_in(25) & key_in(51) & key_in(40) & key_in(8) & key_in(24) & key_in(48) & 
+				key_in(58) & key_in(0) & key_in(10) & key_in(33) & key_in(59) & key_in(26) & key_in(17) & key_in(16) & 
+				key_in(35) & key_in(49) & key_in(50) & key_in(57) & key_in(56) & key_in(18) & key_in(9) & key_in(32) & 
+				key_in(13) & key_in(19) & key_in(30) & key_in(45) & key_in(28) & key_in(62) & key_in(38) & key_in(21) & 
+				key_in(27) & key_in(44) & key_in(14) & key_in(20) & key_in(52) & key_in(12) & key_in(29) & key_in(54) & 
+				key_in(6) & key_in(11) & key_in(36) & key_in(5) & key_in(4) & key_in(53) & key_in(46) & key_in(22);
+
+		K3 <= key_in(50) & key_in(26) & key_in(9) & key_in(35) & key_in(24) & key_in(57) & key_in(8) & key_in(32) & 
+				key_in(42) & key_in(49) & key_in(59) & key_in(17) & key_in(43) & key_in(10) & key_in(1) & key_in(0) & 
+				key_in(48) & key_in(33) & key_in(34) & key_in(41) & key_in(40) & key_in(2) & key_in(58) & key_in(16) & 
+				key_in(60) & key_in(3) & key_in(14) & key_in(29) & key_in(12) & key_in(46) & key_in(22) & key_in(5) & 
+				key_in(11) & key_in(28) & key_in(61) & key_in(4) & key_in(36) & key_in(27) & key_in(13) & key_in(38) & 
+				key_in(53) & key_in(62) & key_in(20) & key_in(52) & key_in(19) & key_in(37) & key_in(30) & key_in(6);
+		
+		K4 <= key_in(34) & key_in(10) & key_in(58) & key_in(48) & key_in(8) & key_in(41) & key_in(57) & key_in(16) & 
+				key_in(26) & key_in(33) & key_in(43) & key_in(1) & key_in(56) & key_in(59) & key_in(50) & key_in(49) & 
+				key_in(32) & key_in(17) & key_in(18) & key_in(25) & key_in(24) & key_in(51) & key_in(42) & key_in(0) & 
+				key_in(44) & key_in(54) & key_in(61) & key_in(13) & key_in(27) & key_in(30) & key_in(6) & key_in(52) & 
+				key_in(62) & key_in(12) & key_in(45) & key_in(19) & key_in(20) & key_in(11) & key_in(60) & key_in(22) & 
+				key_in(37) & key_in(46) & key_in(4) & key_in(36) & key_in(3) & key_in(21) & key_in(14) & key_in(53);
+		
+		K5 <= key_in(18) & key_in(59) & key_in(42) & key_in(32) & key_in(57) & key_in(25) & key_in(41) & key_in(0) & 
+				key_in(10) & key_in(17) & key_in(56) & key_in(50) & key_in(40) & key_in(43) & key_in(34) & key_in(33) & 
+				key_in(16) & key_in(1) & key_in(2) & key_in(9) & key_in(8) & key_in(35) & key_in(26) & key_in(49) & 
+				key_in(28) & key_in(38) & key_in(45) & key_in(60) & key_in(11) & key_in(14) & key_in(53) & key_in(36) & 
+				key_in(46) & key_in(27) & key_in(29) & key_in(3) & key_in(4) & key_in(62) & key_in(44) & key_in(6) & 
+				key_in(21) & key_in(30) & key_in(19) & key_in(20) & key_in(54) & key_in(5) & key_in(61) & key_in(37);
+		
+		K6 <= key_in(2) & key_in(43) & key_in(26) & key_in(16) & key_in(41) & key_in(9) & key_in(25) & key_in(49) & 
+				key_in(59) & key_in(1) & key_in(40) & key_in(34) & key_in(24) & key_in(56) & key_in(18) & key_in(17) & 
+				key_in(0) & key_in(50) & key_in(51) & key_in(58) & key_in(57) & key_in(48) & key_in(10) & key_in(33) & 
+				key_in(12) & key_in(22) & key_in(29) & key_in(44) & key_in(62) & key_in(61) & key_in(37) & key_in(20) & 
+				key_in(30) & key_in(11) & key_in(13) & key_in(54) & key_in(19) & key_in(46) & key_in(28) & key_in(53) & 
+				key_in(5) & key_in(14) & key_in(3) & key_in(4) & key_in(38) & key_in(52) & key_in(45) & key_in(21);
+		
+		K7 <= key_in(51) & key_in(56) & key_in(10) & key_in(0) & key_in(25) & key_in(58) & key_in(9) & key_in(33) & 
+				key_in(43) & key_in(50) & key_in(24) & key_in(18) & key_in(8) & key_in(40) & key_in(2) & key_in(1) & 
+				key_in(49) & key_in(34) & key_in(35) & key_in(42) & key_in(41) & key_in(32) & key_in(59) & key_in(17) & 
+				key_in(27) & key_in(6) & key_in(13) & key_in(28) & key_in(46) & key_in(45) & key_in(21) & key_in(4) & 
+				key_in(14) & key_in(62) & key_in(60) & key_in(38) & key_in(3) & key_in(30) & key_in(12) & key_in(37) & 
+				key_in(52) & key_in(61) & key_in(54) & key_in(19) & key_in(22) & key_in(36) & key_in(29) & key_in(5);
+		
+		K8 <= key_in(35) & key_in(40) & key_in(59) & key_in(49) & key_in(9) & key_in(42) & key_in(58) & key_in(17) & 
+				key_in(56) & key_in(34) & key_in(8) & key_in(2) & key_in(57) & key_in(24) & key_in(51) & key_in(50) & 
+				key_in(33) & key_in(18) & key_in(48) & key_in(26) & key_in(25) & key_in(16) & key_in(43) & key_in(1) & 
+				key_in(11) & key_in(53) & key_in(60) & key_in(12) & key_in(30) & key_in(29) & key_in(5) & key_in(19) & 
+				key_in(61) & key_in(46) & key_in(44) & key_in(22) & key_in(54) & key_in(14) & key_in(27) & key_in(21) & 
+				key_in(36) & key_in(45) & key_in(38) & key_in(3) & key_in(6) & key_in(20) & key_in(13) & key_in(52);
+		
+		K9 <= key_in(56) & key_in(32) & key_in(51) & key_in(41) & key_in(1) & key_in(34) & key_in(50) & key_in(9) & 
+				key_in(48) & key_in(26) & key_in(0) & key_in(59) & key_in(49) & key_in(16) & key_in(43) & key_in(42) & 
+				key_in(25) & key_in(10) & key_in(40) & key_in(18) & key_in(17) & key_in(8) & key_in(35) & key_in(58) & 
+				key_in(3) & key_in(45) & key_in(52) & key_in(4) & key_in(22) & key_in(21) & key_in(60) & key_in(11) & 
+				key_in(53) & key_in(38) & key_in(36) & key_in(14) & key_in(46) & key_in(6) & key_in(19) & key_in(13) & 
+				key_in(28) & key_in(37) & key_in(30) & key_in(62) & key_in(61) & key_in(12) & key_in(5) & key_in(44);
+		
+		K10 <= key_in(40) & key_in(16) & key_in(35) & key_in(25) & key_in(50) & key_in(18) & key_in(34) & key_in(58) & 
+				key_in(32) & key_in(10) & key_in(49) & key_in(43) & key_in(33) & key_in(0) & key_in(56) & key_in(26) & 
+				key_in(9) & key_in(59) & key_in(24) & key_in(2) & key_in(1) & key_in(57) & key_in(48) & key_in(42) & 
+				key_in(54) & key_in(29) & key_in(36) & key_in(19) & key_in(6) & key_in(5) & key_in(44) & key_in(62) & 
+				key_in(37) & key_in(22) & key_in(20) & key_in(61) & key_in(30) & key_in(53) & key_in(3) & key_in(60) & 
+				key_in(12) & key_in(21) & key_in(14) & key_in(46) & key_in(45) & key_in(27) & key_in(52) & key_in(28);
+		
+		K11 <= key_in(24) & key_in(0) & key_in(48) & key_in(9) & key_in(34) & key_in(2) & key_in(18) & key_in(42) & 
+				key_in(16) & key_in(59) & key_in(33) & key_in(56) & key_in(17) & key_in(49) & key_in(40) & key_in(10) & 
+				key_in(58) & key_in(43) & key_in(8) & key_in(51) & key_in(50) & key_in(41) & key_in(32) & key_in(26) & 
+				key_in(38) & key_in(13) & key_in(20) & key_in(3) & key_in(53) & key_in(52) & key_in(28) & key_in(46) & 
+				key_in(21) & key_in(6) & key_in(4) & key_in(45) & key_in(14) & key_in(37) & key_in(54) & key_in(44) & 
+				key_in(27) & key_in(5) & key_in(61) & key_in(30) & key_in(29) & key_in(11) & key_in(36) & key_in(12);
+		
+		K12 <= key_in(8) & key_in(49) & key_in(32) & key_in(58) & key_in(18) & key_in(51) & key_in(2) & key_in(26) & 
+				key_in(0) & key_in(43) & key_in(17) & key_in(40) & key_in(1) & key_in(33) & key_in(24) & key_in(59) & 
+				key_in(42) & key_in(56) & key_in(57) & key_in(35) & key_in(34) & key_in(25) & key_in(16) & key_in(10) & 
+				key_in(22) & key_in(60) & key_in(4) & key_in(54) & key_in(37) & key_in(36) & key_in(12) & key_in(30) & 
+				key_in(5) & key_in(53) & key_in(19) & key_in(29) & key_in(61) & key_in(21) & key_in(38) & key_in(28) & 
+				key_in(11) & key_in(52) & key_in(45) & key_in(14) & key_in(13) & key_in(62) & key_in(20) & key_in(27);
+		
+		K13 <= key_in(57) & key_in(33) & key_in(16) & key_in(42) & key_in(2) & key_in(35) & key_in(51) & key_in(10) & 
+				key_in(49) & key_in(56) & key_in(1) & key_in(24) & key_in(50) & key_in(17) & key_in(8) & key_in(43) & 
+				key_in(26) & key_in(40) & key_in(41) & key_in(48) & key_in(18) & key_in(9) & key_in(0) & key_in(59) & 
+				key_in(6) & key_in(44) & key_in(19) & key_in(38) & key_in(21) & key_in(20) & key_in(27) & key_in(14) & 
+				key_in(52) & key_in(37) & key_in(3) & key_in(13) & key_in(45) & key_in(5) & key_in(22) & key_in(12) & 
+				key_in(62) & key_in(36) & key_in(29) & key_in(61) & key_in(60) & key_in(46) & key_in(4) & key_in(11);
+		
+		K14 <= key_in(41) & key_in(17) & key_in(0) & key_in(26) & key_in(51) & key_in(48) & key_in(35) & key_in(59) & 
+				key_in(33) & key_in(40) & key_in(50) & key_in(8) & key_in(34) & key_in(1) & key_in(57) & key_in(56) & 
+				key_in(10) & key_in(24) & key_in(25) & key_in(32) & key_in(2) & key_in(58) & key_in(49) & key_in(43) & 
+				key_in(53) & key_in(28) & key_in(3) & key_in(22) & key_in(5) & key_in(4) & key_in(11) & key_in(61) & 
+				key_in(36) & key_in(21) & key_in(54) & key_in(60) & key_in(29) & key_in(52) & key_in(6) & key_in(27) & 
+				key_in(46) & key_in(20) & key_in(13) & key_in(45) & key_in(44) & key_in(30) & key_in(19) & key_in(62);
+		
+		K15 <= key_in(25) & key_in(1) & key_in(49) & key_in(10) & key_in(35) & key_in(32) & key_in(48) & key_in(43) & 
+				key_in(17) & key_in(24) & key_in(34) & key_in(57) & key_in(18) & key_in(50) & key_in(41) & key_in(40) & 
+				key_in(59) & key_in(8) & key_in(9) & key_in(16) & key_in(51) & key_in(42) & key_in(33) & key_in(56) & 
+				key_in(37) & key_in(12) & key_in(54) & key_in(6) & key_in(52) & key_in(19) & key_in(62) & key_in(45) & 
+				key_in(20) & key_in(5) & key_in(38) & key_in(44) & key_in(13) & key_in(36) & key_in(53) & key_in(11) & 
+				key_in(30) & key_in(4) & key_in(60) & key_in(29) & key_in(28) & key_in(14) & key_in(3) & key_in(46);
+		
+		K16 <= key_in(17) & key_in(58) & key_in(41) & key_in(2) & key_in(56) & key_in(24) & key_in(40) & key_in(35) & 
+				key_in(9) & key_in(16) & key_in(26) & key_in(49) & key_in(10) & key_in(42) & key_in(33) & key_in(32) & 
+				key_in(51) & key_in(0) & key_in(1) & key_in(8) & key_in(43) & key_in(34) & key_in(25) & key_in(48) & 
+				key_in(29) & key_in(4) & key_in(46) & key_in(61) & key_in(44) & key_in(11) & key_in(54) & key_in(37) & 
+				key_in(12) & key_in(60) & key_in(30) & key_in(36) & key_in(5) & key_in(28) & key_in(45) & key_in(3) & 
+				key_in(22) & key_in(27) & key_in(52) & key_in(21) & key_in(20) & key_in(6) & key_in(62) & key_in(38);
+	
+		key_ready <= '1';
+
+	end if;
+	
+end if;
+end process;
+
+
+end Behavioral;

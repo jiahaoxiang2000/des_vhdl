@@ -3,12 +3,23 @@ GHDL=~/tools/ghdl/bin/ghdl
 GHDLFLAGS=--ieee=synopsys
 
 # Project files
-SOURCES = src/des_pkg.vhd \
-         src/des_entity.vhd \
-         src/initial_permutation.vhd \
-         src/final_permutation.vhd \
-         src/round.vhd \
-         src/key_schedule.vhd
+SOURCES = src/s1_box.vhd \
+          src/s2_box.vhd \
+          src/s3_box.vhd \
+          src/s4_box.vhd \
+          src/s5_box.vhd \
+          src/s6_box.vhd \
+          src/s7_box.vhd \
+          src/s8_box.vhd \
+          src/s_box.vhd \
+          src/p_box.vhd \
+          src/add_key.vhd \
+          src/add_left.vhd \
+          src/e_expansion_function.vhd \
+          src/block_top.vhd \
+          src/key_schedule.vhd \
+          src/des_top.vhd \
+          src/des_cipher_top.vhd
 
 TESTBENCH = tb/des_tb.vhd
 

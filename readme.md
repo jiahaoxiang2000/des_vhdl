@@ -1,8 +1,6 @@
 # des vhdl implentation
 
-## error
-
-- [ ] key_schedule: not correct
+the test vector is pass, so the implementation is correct.
 
 ## test vector
 

@@ -3,25 +3,38 @@ GHDL=~/tools/ghdl/bin/ghdl
 GHDLFLAGS=--ieee=synopsys
 
 # Project files
-SOURCES = src/s1_box.vhd \
-          src/s2_box.vhd \
-          src/s3_box.vhd \
-          src/s4_box.vhd \
-          src/s5_box.vhd \
-          src/s6_box.vhd \
-          src/s7_box.vhd \
-          src/s8_box.vhd \
-          src/s_box.vhd \
-          src/p_box.vhd \
-          src/add_key.vhd \
-          src/add_left.vhd \
-          src/e_expansion_function.vhd \
-          src/block_top.vhd \
-          src/key_schedule.vhd \
-          src/des_top.vhd \
-          src/des_cipher_top.vhd
+SOURCES = src/expand.vhdl \
+          src/f.vhdl \
+          src/initial_permutation.vhdl \
+          src/key_permutation_1.vhdl \
+          src/key_permutation_2.vhdl \
+          src/left_shift_by_1.vhdl \
+          src/left_shift_by_2.vhdl \
+          src/permutation_p.vhdl \
+          src/reverse_initial_permutation.vhdl \
+          src/right_shift_by_1.vhdl \
+          src/right_shift_by_2.vhdl \
+          src/round.vhdl \
+          src/s_box.vhdl \
+          src/s1_box.vhdl \
+          src/s2_box.vhdl \
+          src/s3_box.vhdl \
+          src/s4_box.vhdl \
+          src/s5_box.vhdl \
+          src/s6_box.vhdl \
+          src/s7_box.vhdl \
+          src/s8_box.vhdl \
+          src/split_48_bits_to_8x6.vhdl \
+          src/subkey_production.vhdl \
+          src/swap_left_right_64_bits.vhdl \
+          src/xor_32_bits.vhdl \
+          src/xor_48_bits.vhdl \
+          src/encrypt.vhdl \
+          src/decrypt.vhdl
 
-TESTBENCH = tb/des_tb.vhd
+TESTBENCH = tb/test_encryption.vhdl \
+            tb/test_decryption.vhdl
+        
 
 # Targets
 all: compile simulate
@@ -29,13 +42,15 @@ all: compile simulate
 compile:
 	$(GHDL) -a $(GHDLFLAGS) $(SOURCES)
 	$(GHDL) -a $(GHDLFLAGS) $(TESTBENCH)
-	$(GHDL) -e $(GHDLFLAGS) des_tb
+	$(GHDL) -e $(GHDLFLAGS) test_encryption
+	$(GHDL) -e $(GHDLFLAGS) test_decryption 
 
 simulate:
-	$(GHDL) -r $(GHDLFLAGS) des_tb --vcd=wave.vcd
+	$(GHDL) -r $(GHDLFLAGS) test_encryption --vcd=test_encryption.vcd
+	$(GHDL) -r $(GHDLFLAGS) test_decryption --vcd=test_decryption.vcd 
 
 clean:
-	rm -f *.o *.cf work-obj93.cf wave.vcd
-	rm -f des_tb
+	rm -f *.o *.cf work-obj93.cf *.vcd
+	rm -f test_encryption 
 
 .PHONY: all compile simulate clean
